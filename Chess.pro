@@ -9,33 +9,16 @@ CONFIG += c++14 c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    Bishop.cpp \
     Boardsquare.cpp \
     Chessboard.cpp \
-    King.cpp \
-    Knight.cpp \
-    LogicController.cpp \
-    Pawn.cpp \
-    Queen.cpp \
-    Rook.cpp \
     TcpSocket.cpp \
     joingamedialog.cpp \
     main.cpp
 
 HEADERS += \
-    Bishop.h \
     Boardsquare.h \
     Chessboard.h \
     Globals.h \
-    King.h \
-    Knight.h \
-    LogicController.h \
-    Move.h \
-    Pawn.h \
-    Piece.h \
-    Queen.h \
-    Rook.h \
-    SoundPlayer.h \
     TcpSocket.h \
     joingamedialog.h
 

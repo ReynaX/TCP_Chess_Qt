@@ -5,7 +5,6 @@
 #include <QObject>
 
 #include "Globals.h"
-#include "Piece.h"
 
 class BoardSquare : public QPushButton
 {
@@ -18,7 +17,7 @@ public:
 
     void unselect();
 
-    void selectIcon(Piece::Type type, Color color);
+    void selectIcon(char type, Color color);
     void removeIcon();
 protected:
     QSize sizeHint() const;

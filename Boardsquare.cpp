@@ -35,16 +35,16 @@ void BoardSquare::unselect(){
     else this->setStyleSheet("background-color: rgba(108, 81, 60, 255); border: 0px;");
 }
 
-void BoardSquare::selectIcon(Piece::Type type, Color color){
+void BoardSquare::selectIcon(char type, Color color){
     QString c = color == Color::WHITE ? "white" : "black";
     QString t;
     switch(type){
-        case Piece::Type::BISHOP: t = "bishop"; break;
-        case Piece::Type::QUEEN: t = "queen"; break;
-        case Piece::Type::PAWN: t = "pawn"; break;
-        case Piece::Type::KNIGHT: t = "knight"; break;
-        case Piece::Type::ROOK: t = "rook"; break;
-        case Piece::Type::KING: t = "king"; break;
+        case 'B': case 'b': t = "bishop"; break;
+        case 'Q': case 'q': t = "queen"; break;
+        case 'P': case 'p': t = "pawn"; break;
+        case 'N': case 'n': t = "knight"; break;
+        case 'R': case 'r': t = "rook"; break;
+        case 'K': case 'k': t = "king"; break;
     }
 
     QString url = ":/icons/Resources/" + c + "_" + t + "_icon.png";

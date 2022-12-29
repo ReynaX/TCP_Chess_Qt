@@ -43,14 +43,6 @@ void TcpSocket::move(std::string from, std::string to){
     this->write(outputData);
 }
 
-std::string TcpSocket::getPlayerName() const{
-    return m_playerName;
-}
-
-void TcpSocket::setPlayerName(std::string playerName){
-    m_playerName = playerName;
-}
-
 void TcpSocket::setGameID(std::string gameID){
     m_gameID = gameID;
 }
@@ -96,13 +88,16 @@ void TcpSocket::readyRead(){
              qDebug() << "Game ID" << m_gameID.c_str();
              emit gameIDChanged(); emit joined();
         }else if(messagecode == 'd'){
-            qDebug() << "Emitting";
             disconnectFromHost();
             emit disconnectedFromServer();
         }else if(messagecode == 'l'){
             emit lost();
         }else if(messagecode == 'w'){
             emit won();
+        }else if(messagecode == 'b'){
+
+        }else if(messagecode == 'p'){
+
         }
     }
 }

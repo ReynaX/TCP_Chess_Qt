@@ -15,8 +15,7 @@ public slots:
     void joinGame();
     void disconnect();
     void move(std::string from, std::string to);
-    std::string getPlayerName() const;
-    void setPlayerName(std::string playerName);
+
     void setGameID(std::string gameID);
     std::string getGameID();
     void drawGame();

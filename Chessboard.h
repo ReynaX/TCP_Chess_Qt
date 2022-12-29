@@ -2,46 +2,47 @@
 #define CHESSBOARD_H
 
 #include <QMainWindow>
+#include "Globals.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class ChessBoard; }
 QT_END_NAMESPACE
 
 class BoardSquare;
-class LogicController;
 class JoinGameDialog;
-class Move;
 class QLabel;
-class QMediaPlayer;
 class TcpSocket;
 class ChessBoard : public QMainWindow
 {
     Q_OBJECT
 public:
-    ChessBoard(LogicController* controller = nullptr, QWidget *parent = nullptr);
+    ChessBoard(QWidget *parent = nullptr);
     ~ChessBoard();
 
     QVector<BoardSquare*> m_boardSquares;
 public slots:
-    void onChessBoardClicked();
+//    void onChessBoardClicked();
     void onHostGameActionClicked();
     void onJoinGameActionClicked();
     void onDisconnectActionClicked();
      // Called when other player has moved. Method gets called when socket emits <code>moveSignal</code> signal.
-    void onOtherPlayerMovement(std::string from, std::string to);
+//    void onOtherPlayerMovement(std::string from, std::string to);
     // Called when this or other socket from the same game disconnects
     void disconnectedFromServer();
+    void setupBoard(std::string board);
+
 private:
     Ui::ChessBoard* ui;
-    LogicController* m_logicController;
     BoardSquare* m_squareSelected;
+    std::unordered_multimap<Pos, Pos, PosHash> m_possibleMoves;
+    GameState m_gameState;
+    Color m_color;
 
     TcpSocket* m_socket;
     bool m_playerMove;
-
+    std::string m_board;
     void selectPossibleMoves();
     void unselectPossibleMoves();
-    void removeIcon(Move* move, BoardSquare* squarePressed);
     void gameFinished();
 
     void setupMenu();
@@ -51,8 +52,7 @@ private:
     void connectToServer();
     void clearBoard();
 
-    void resetBoard();
-    void garbageCollector();
+//    void garbageCollector();
 
     QLabel* m_gameIDLabel;
     QLabel* m_infoLabel;
