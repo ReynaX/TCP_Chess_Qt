@@ -25,7 +25,7 @@ Cała logika klienta znajduje się w klasie <code>TcpSocket</code>, która wysy�
 
 ## Instrukcja
 Należy pobrać [archiwum](https://drive.google.com/file/d/1AohSQHM580Jt81AY8rWaQVvBitt8XBQJ/view) i uruchomić. Serwer najlepiej uruchomić z terminala.
-Niestety nie mogę zagwarantować działania na wszystkich systemach operacyjnych, dlatego w razie problemów należy:
+Niestety nie mogę zagwarantować działania na wszystkich systemach operacyjnych(projekt był testowany na Ubuntu 20.4), dlatego w razie problemów należy:
 - Pobrać [QtCreator](https://www.qt.io/download-open-source?hsCtaTracking=e9c17691-91a0-4616-9bc2-1a6a6c318914%7C963686f8-2c68-442a-b17b-3d73ce95b819)
 - Zalogować się na swoje konto
 - Zainstalować Qt 5.15
