@@ -23,7 +23,7 @@ gdzie kluczem jest ID gry generowane automatycznie oraz informacje o grze jako w
 Cała logika serwera znajduje się w klasie <code>TcpServer</code>.
 Cała logika klienta znajduje się w klasie <code>TcpSocket</code>, która wysyła sygnały, a te odbierane są przez klasę <code>ChessBoard</code>.
 
-## Instrukcja do pobrania
+## Instrukcja
 Należy pobrać [archiwum](https://drive.google.com/file/d/1AohSQHM580Jt81AY8rWaQVvBitt8XBQJ/view) i uruchomić. Serwer najlepiej uruchomić z terminala.
 Niestety nie mogę zagwarantować działania na wszystkich systemach operacyjnych, dlatego w razie problemów należy:
 - Pobrać [QtCreator](https://www.qt.io/download-open-source?hsCtaTracking=e9c17691-91a0-4616-9bc2-1a6a6c318914%7C963686f8-2c68-442a-b17b-3d73ce95b819)
