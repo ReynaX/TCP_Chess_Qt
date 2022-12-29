@@ -2,19 +2,21 @@
 #define CHESSGAME_H
 
 #include <string>
+#include "LogicController.h"
 
 class QTcpSocket;
 class ChessGame
 {
 public:
     ChessGame();
-    ChessGame(std::string gameID, QTcpSocket* whitePlayer);
+    ChessGame(std::string gameID, QTcpSocket* whitePlayer, LogicController* controller);
+    ~ChessGame();
 
     void addPlayer(QTcpSocket* blackPlayer);
     std::string getGameID() const;
     QTcpSocket* getWhitePlayer() const;
     QTcpSocket* getBlackPlayer() const;
-    QTcpSocket* getOtherSocket(QTcpSocket* socket);
+    QTcpSocket* getOtherSocket(QTcpSocket* socket) const;
     bool isPlaying();
 
     void setWhitePlayer(QTcpSocket* whitePlayer);
@@ -27,6 +29,8 @@ private:
     QTcpSocket* m_blackPlayer;
 
     bool m_isPlaying;
+
+    LogicController* m_logicController;
 };
 
 #endif // CHESSGAME_H

@@ -11,7 +11,7 @@ class TcpServer : QTcpServer
 {
     Q_OBJECT
 public:
-    static unsigned int NEXT_ID;
+    static int NEXT_ID;
 
     TcpServer(QObject* parent = nullptr);
     void startServer();
@@ -37,7 +37,7 @@ public slots:
 
 private:
     // Map designed to store active games in gameID -> game structure
-    std::unordered_map<long long, ChessGame> m_activeGames;
+    std::unordered_map<int, ChessGame*> m_activeGames;
 
     /*
      * Read next part of data received from a socket.

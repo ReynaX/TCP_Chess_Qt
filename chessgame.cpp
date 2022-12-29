@@ -5,8 +5,12 @@
 ChessGame::ChessGame(){
 }
 
-ChessGame::ChessGame(std::string gameID, QTcpSocket *whitePlayer)
-    : m_gameID(gameID), m_whitePlayer(whitePlayer), m_blackPlayer(nullptr), m_isPlaying(false){
+ChessGame::~ChessGame(){
+    delete m_logicController;
+}
+
+ChessGame::ChessGame(std::string gameID, QTcpSocket *whitePlayer, LogicController* controller)
+    : m_gameID(gameID), m_whitePlayer(whitePlayer), m_blackPlayer(nullptr), m_isPlaying(false), m_logicController(controller){
 }
 
 void ChessGame::addPlayer(QTcpSocket* blackPlayer){
@@ -28,7 +32,7 @@ QTcpSocket *ChessGame::getBlackPlayer() const{
     return m_blackPlayer;
 }
 
-QTcpSocket *ChessGame::getOtherSocket(QTcpSocket *socket){
+QTcpSocket *ChessGame::getOtherSocket(QTcpSocket *socket) const{
     if(socket->peerAddress() == m_whitePlayer->peerAddress() && socket->peerPort() == m_whitePlayer->peerPort())
         return m_blackPlayer;
     return m_whitePlayer;

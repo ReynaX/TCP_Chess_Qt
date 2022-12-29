@@ -4,7 +4,7 @@
 
 #include "chessgame.h"
 
-unsigned int TcpServer::NEXT_ID = 0;
+int TcpServer::NEXT_ID = 0;
 
 TcpServer::TcpServer(QObject* parent) : QTcpServer(parent){
 }
@@ -59,13 +59,13 @@ void TcpServer::readyRead(){
 void TcpServer::disconnectBothPlayers(std::string gameID){
     QByteArray outputData;
     outputData.append('d');
-    unsigned int lGameID = std::stoi(gameID);
+    int lGameID = std::stoi(gameID);
 
     if(m_activeGames.find(lGameID) != m_activeGames.end()){
-        ChessGame game = m_activeGames[lGameID];
+        ChessGame* game = m_activeGames[lGameID];
 
-        game.getWhitePlayer()->write(outputData);
-        game.getBlackPlayer()->write(outputData);
+        game->getWhitePlayer()->write(outputData);
+        game->getBlackPlayer()->write(outputData);
 
         m_activeGames.erase(lGameID);
     }
@@ -77,9 +77,9 @@ void TcpServer::disconnect(){
     QByteArray outputData;
     outputData.append('d');
     for(auto& game: m_activeGames){
-        if(game.second.isInGame(socket)){
-            auto whitePlayer = game.second.getWhitePlayer();
-            auto blackPlayer = game.second.getBlackPlayer();
+        if(game.second->isInGame(socket)){
+            auto whitePlayer = game.second->getWhitePlayer();
+            auto blackPlayer = game.second->getBlackPlayer();
             whitePlayer->write(outputData);
             blackPlayer->write(outputData);
 
@@ -101,13 +101,14 @@ void TcpServer::hostNewGame(QTcpSocket* socket){
     qDebug() << "Host new game";
     std::string gameID = std::to_string(++NEXT_ID);
 
-    ChessGame newGame(gameID, socket);
+    ChessGame* newGame = new ChessGame(gameID, socket, new LogicController());
     m_activeGames.insert(std::make_pair(NEXT_ID, newGame));
 
     QByteArray outputData;
     outputData.append('j'); // code message for hosting
     outputData.append(gameID.length());
     outputData.append(gameID.c_str(), gameID.length());
+    qDebug() << "Writing " << outputData;
     socket->write(outputData);
 }
 
@@ -115,14 +116,14 @@ void TcpServer::joinGame(QByteArray& data, QTcpSocket *socket){
     qDebug() << "Join to game";
     std::string gameID = getProperty(data);
     qDebug() << "GameID:" << gameID.c_str();
-    unsigned int lGameID = std::stoi(gameID);
+    int lGameID = std::stoi(gameID);
     // Check if game exists and is playing
-    if(m_activeGames.find(lGameID) != m_activeGames.end() && !m_activeGames.find(lGameID)->second.isPlaying()){
+    if(m_activeGames.find(lGameID) != m_activeGames.end() && !m_activeGames.find(lGameID)->second->isPlaying()){
         qDebug() << "Player joining the game";
-        ChessGame& game = m_activeGames[lGameID];
+        ChessGame* game = m_activeGames[lGameID];
 
-        game.addPlayer(socket);
-        notifyOtherPlayer(game.getOtherSocket(socket));
+        game->addPlayer(socket);
+        notifyOtherPlayer(game->getOtherSocket(socket));
         QByteArray outputData;
         outputData.append('j'); // code message for joining
         outputData.append(gameID.length());
@@ -140,7 +141,7 @@ void TcpServer::joinGame(QByteArray& data, QTcpSocket *socket){
 void TcpServer::move(QByteArray& data, QTcpSocket *socket){
     std::string gameID = getProperty(data);
     qDebug() << "Move" << data << gameID.c_str();
-    unsigned int lGameID = std::stoi(gameID);
+    int lGameID = std::stoi(gameID);
     // Notify other player of movement
     if(m_activeGames.find(lGameID) != m_activeGames.end()){
         std::string from = getProperty(data);
@@ -153,7 +154,7 @@ void TcpServer::move(QByteArray& data, QTcpSocket *socket){
         outputData.append(to.length());
         outputData.append(to.c_str(), to.length());
         qDebug() << "Move" << from.c_str() << to.c_str();
-        m_activeGames[lGameID].getOtherSocket(socket)->write(outputData);
+        m_activeGames[lGameID]->getOtherSocket(socket)->write(outputData);
     }
 }
 
@@ -166,25 +167,25 @@ void TcpServer::notifyOtherPlayer(QTcpSocket* socket){
 void TcpServer::gameDrawn(QByteArray& data){
     qDebug() << "Draw";
     std::string gameID = getProperty(data);
-    unsigned int lGameID = std::stoi(gameID);
+    int lGameID = std::stoi(gameID);
 
     if(m_activeGames.find(lGameID) != m_activeGames.end()){
-        ChessGame game = m_activeGames[lGameID];
+        ChessGame* game = m_activeGames[lGameID];
         QByteArray outputData;
         outputData.append('r');
-        game.getWhitePlayer()->write(outputData);
-        game.getBlackPlayer()->write(outputData);
+        game->getWhitePlayer()->write(outputData);
+        game->getBlackPlayer()->write(outputData);
     }
 }
 
 void TcpServer::gameWon(QByteArray& data, QTcpSocket *socket){
     qDebug() << "Won";
     std::string gameID = getProperty(data);
-    unsigned int lGameID = std::stoi(gameID);
+    int lGameID = std::stoi(gameID);
 
     if(m_activeGames.find(lGameID) != m_activeGames.end()){
-        ChessGame game = m_activeGames[lGameID];
+        ChessGame* game = m_activeGames[lGameID];
         socket->write("w");
-        game.getOtherSocket(socket)->write("l");
+        game->getOtherSocket(socket)->write("l");
     }
 }

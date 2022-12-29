@@ -9,6 +9,13 @@ CONFIG -= app_bundle
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+        Bishop.cpp \
+        King.cpp \
+        Knight.cpp \
+        LogicController.cpp \
+        Pawn.cpp \
+        Queen.cpp \
+        Rook.cpp \
         chessgame.cpp \
         main.cpp \
         tcpserver.cpp
@@ -19,5 +26,18 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    Bishop.h \
+    Globals.h \
+    King.h \
+    Knight.h \
+    LogicController.h \
+    Move.h \
+    Pawn.h \
+    Piece.h \
+    Queen.h \
+    Rook.h \
     chessgame.h \
     tcpserver.h
+
+DISTFILES += \
+    Server.pro.user
