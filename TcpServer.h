@@ -5,7 +5,7 @@
 #include <QObject>
 #include <unordered_map>
 
-#include "chessgame.h"
+#include "ChessGame.h"
 
 class TcpServer : QTcpServer
 {
@@ -55,6 +55,11 @@ private:
     void notifyOtherPlayer(QTcpSocket* socket);
     void gameDrawn(QByteArray& data);
     void gameWon(QByteArray& data, QTcpSocket* socket);
+
+    void parsePossibleMoves(QByteArray& data, LogicController* controller);
+    QByteArray parsePossibleMoves(LogicController* controller);
+
+    void checkIfGameOver(std::string gameID, LogicController* controller, QTcpSocket* socket);
 };
 
 #endif // TCPSERVER_H

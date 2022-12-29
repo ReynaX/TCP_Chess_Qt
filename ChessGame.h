@@ -17,7 +17,8 @@ public:
     QTcpSocket* getWhitePlayer() const;
     QTcpSocket* getBlackPlayer() const;
     QTcpSocket* getOtherSocket(QTcpSocket* socket) const;
-    bool isPlaying();
+    LogicController* getLogicController() const;
+    bool isPlaying() const;
 
     void setWhitePlayer(QTcpSocket* whitePlayer);
     void setBlackPlayer(QTcpSocket* blackPlayer);

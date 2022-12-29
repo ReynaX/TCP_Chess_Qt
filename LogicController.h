@@ -16,6 +16,9 @@ public:
     Move* makeMove(Pos from, Pos to);
     void unmakeMove(Move* move);
     void swapTurns();
+    std::string getBoard();
+    const std::unordered_multimap<Pos, Pos, PosHash>& getPossibleMoves();
+    GameState getState();
 private:
 
     std::vector<std::vector<Piece*>> m_board;

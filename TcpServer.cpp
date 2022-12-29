@@ -1,8 +1,8 @@
-#include "tcpserver.h"
+#include "TcpServer.h"
 
 #include <QTcpSocket>
 
-#include "chessgame.h"
+#include "ChessGame.h"
 
 int TcpServer::NEXT_ID = 0;
 
@@ -46,8 +46,10 @@ void TcpServer::readyRead(){
             move(inputData, socket);
         else if(action == 'd'){
             std::string gameID = getProperty(inputData);
+            if(gameID.length() < 1)
+                return;
             disconnectBothPlayers(gameID);
-            qDebug() << "Disconnected";
+            return;
         }else if(action == 'c'){
             gameWon(inputData, socket);
         }else if(action == 'r'){
@@ -64,8 +66,10 @@ void TcpServer::disconnectBothPlayers(std::string gameID){
     if(m_activeGames.find(lGameID) != m_activeGames.end()){
         ChessGame* game = m_activeGames[lGameID];
 
-        game->getWhitePlayer()->write(outputData);
-        game->getBlackPlayer()->write(outputData);
+        if(game->getWhitePlayer() != nullptr)
+            game->getWhitePlayer()->write(outputData);
+        if(game->getBlackPlayer() != nullptr)
+            game->getBlackPlayer()->write(outputData);
 
         m_activeGames.erase(lGameID);
     }
@@ -80,8 +84,10 @@ void TcpServer::disconnect(){
         if(game.second->isInGame(socket)){
             auto whitePlayer = game.second->getWhitePlayer();
             auto blackPlayer = game.second->getBlackPlayer();
-            whitePlayer->write(outputData);
-            blackPlayer->write(outputData);
+            if(whitePlayer != nullptr)
+                whitePlayer->write(outputData);
+            if(blackPlayer != nullptr)
+                blackPlayer->write(outputData);
 
             m_activeGames.erase(game.first);
             break;
@@ -108,6 +114,8 @@ void TcpServer::hostNewGame(QTcpSocket* socket){
     outputData.append('j'); // code message for hosting
     outputData.append(gameID.length());
     outputData.append(gameID.c_str(), gameID.length());
+
+
     qDebug() << "Writing " << outputData;
     socket->write(outputData);
 }
@@ -122,13 +130,24 @@ void TcpServer::joinGame(QByteArray& data, QTcpSocket *socket){
         qDebug() << "Player joining the game";
         ChessGame* game = m_activeGames[lGameID];
 
+        LogicController* controller = m_activeGames[lGameID]->getLogicController();
+        std::string board = controller->getBoard();
+
         game->addPlayer(socket);
         notifyOtherPlayer(game->getOtherSocket(socket));
         QByteArray outputData;
         outputData.append('j'); // code message for joining
         outputData.append(gameID.length());
         outputData.append(gameID.c_str(), gameID.length());
+
+        outputData.append('m'); // code message for move
+        outputData.append(board.c_str(), board.length());
         socket->write(outputData);
+
+        auto out = outputData + parsePossibleMoves(controller);
+        qDebug() << "Data sent" << outputData;
+
+        game->getOtherSocket(socket)->write(out);
     }else{
         qDebug() << "Player failed to join the game";
         QByteArray outputData;
@@ -142,19 +161,29 @@ void TcpServer::move(QByteArray& data, QTcpSocket *socket){
     std::string gameID = getProperty(data);
     qDebug() << "Move" << data << gameID.c_str();
     int lGameID = std::stoi(gameID);
-    // Notify other player of movement
+
     if(m_activeGames.find(lGameID) != m_activeGames.end()){
         std::string from = getProperty(data);
         std::string to = getProperty(data);
+        Pos fromPos = Pos(std::stoi(from) / 8, std::stoi(from) % 8);
+        Pos toPos = Pos(std::stoi(to) / 8, std::stoi(to) % 8);
+
+        LogicController* controller = m_activeGames[lGameID]->getLogicController();
+        controller->makeMove(fromPos, toPos);
+        controller->swapTurns();
+
+        checkIfGameOver(gameID, controller, socket);
+
+        std::string board = controller->getBoard();
 
         QByteArray outputData;
         outputData.append('m'); // code message for move
-        outputData.append(from.length());
-        outputData.append(from.c_str(), from.length());
-        outputData.append(to.length());
-        outputData.append(to.c_str(), to.length());
-        qDebug() << "Move" << from.c_str() << to.c_str();
-        m_activeGames[lGameID]->getOtherSocket(socket)->write(outputData);
+        outputData.append(board.c_str(), board.length());
+        socket->write(outputData);
+
+        auto out = outputData + parsePossibleMoves(controller);
+        qDebug() << "Data sent" << outputData;
+        m_activeGames[lGameID]->getOtherSocket(socket)->write(out);
     }
 }
 
@@ -187,5 +216,51 @@ void TcpServer::gameWon(QByteArray& data, QTcpSocket *socket){
         ChessGame* game = m_activeGames[lGameID];
         socket->write("w");
         game->getOtherSocket(socket)->write("l");
+    }
+}
+
+void TcpServer::parsePossibleMoves(QByteArray& data, LogicController* controller){
+    data.append('p');
+    auto moves = controller->getPossibleMoves();
+    for(auto& m: moves){
+        Pos fromPos = m.first, toPos = m.second;
+        std::string from = fromPos.toString(), to = toPos.toString();
+
+        data.append(from.length());
+        data.append(from.c_str(), from.length());
+        data.append(to.length());
+        data.append(to.c_str(), to.length());
+    }
+}
+
+QByteArray TcpServer::parsePossibleMoves(LogicController *controller){
+    QByteArray data;
+    data.append('p');
+    auto moves = controller->getPossibleMoves();
+    for(auto& m: moves){
+        Pos fromPos = m.first, toPos = m.second;
+        std::string from = fromPos.toString(), to = toPos.toString();
+
+        data.append(from.length());
+        data.append(from.c_str(), from.length());
+        data.append(to.length());
+        data.append(to.c_str(), to.length());
+    }
+    return data;
+}
+
+void TcpServer::checkIfGameOver(std::string gameID, LogicController *controller, QTcpSocket *socket){
+    GameState state = controller->getState();
+
+    if(state == GameState::STALEMATE){
+        QByteArray draw;
+        draw.append(gameID.length());
+        draw.append(gameID.c_str(), gameID.length());
+        gameDrawn(draw);
+    }else if(state == GameState::CHECKMATE){
+        QByteArray won;
+        won.append(gameID.length());
+        won.append(gameID.c_str(), gameID.length());
+        gameWon(won, socket);
     }
 }

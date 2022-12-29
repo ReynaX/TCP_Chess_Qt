@@ -10,15 +10,15 @@ CONFIG -= app_bundle
 
 SOURCES += \
         Bishop.cpp \
+        ChessGame.cpp \
         King.cpp \
         Knight.cpp \
         LogicController.cpp \
         Pawn.cpp \
         Queen.cpp \
         Rook.cpp \
-        chessgame.cpp \
-        main.cpp \
-        tcpserver.cpp
+        TcpServer.cpp \
+        main.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -27,6 +27,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     Bishop.h \
+    ChessGame.h \
     Globals.h \
     King.h \
     Knight.h \
@@ -36,8 +37,7 @@ HEADERS += \
     Piece.h \
     Queen.h \
     Rook.h \
-    chessgame.h \
-    tcpserver.h
+    TcpServer.h
 
 DISTFILES += \
     Server.pro.user

@@ -127,6 +127,26 @@ void LogicController::swapTurns(){
     handleGameState();
 }
 
+std::string LogicController::getBoard(){
+    std::string board;
+    for(auto& row: m_board){
+        for(auto& piece: row){
+            if(piece == nullptr)
+                board += '-';
+            else board += piece->getSign();
+        }
+    }
+    return board;
+}
+
+const std::unordered_multimap<Pos, Pos, PosHash>& LogicController::getPossibleMoves(){
+    return m_possibleMoves;
+}
+
+GameState LogicController::getState(){
+    return m_state;
+}
+
 void LogicController::handleGameState(){
     m_possibleMoves.clear();
     Pos kingPos = m_turn == Color::WHITE ? m_whiteKing->getPos() : m_blackKing->getPos();

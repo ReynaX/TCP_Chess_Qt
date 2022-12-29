@@ -1,4 +1,4 @@
-#include "chessgame.h"
+#include "ChessGame.h"
 #include <QHostAddress>
 #include <QTcpSocket>
 
@@ -38,7 +38,11 @@ QTcpSocket *ChessGame::getOtherSocket(QTcpSocket *socket) const{
     return m_whitePlayer;
 }
 
-bool ChessGame::isPlaying(){
+LogicController* ChessGame::getLogicController() const{
+    return m_logicController;
+}
+
+bool ChessGame::isPlaying() const{
     return m_isPlaying;
 }
 
@@ -52,8 +56,8 @@ void ChessGame::setBlackPlayer(QTcpSocket *blackPlayer){
 }
 
 bool ChessGame::isInGame(QTcpSocket *socket){
-    return (socket->peerAddress() == m_whitePlayer->peerAddress() && socket->peerPort() == m_whitePlayer->peerPort()) ||
-            (socket->peerAddress() == m_blackPlayer->peerAddress() && socket->peerPort() == m_blackPlayer->peerPort());
+    return (m_whitePlayer != nullptr && socket->peerAddress() == m_whitePlayer->peerAddress() && socket->peerPort() == m_whitePlayer->peerPort()) ||
+            (m_blackPlayer != nullptr && socket->peerAddress() == m_blackPlayer->peerAddress() && socket->peerPort() == m_blackPlayer->peerPort());
 }
 
 
