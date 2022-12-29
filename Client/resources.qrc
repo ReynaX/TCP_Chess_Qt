@@ -1,0 +1,25 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>Resources/black_bishop_icon.png</file>
+        <file>Resources/black_king_icon.png</file>
+        <file>Resources/black_knight_icon.png</file>
+        <file>Resources/black_pawn_icon.png</file>
+        <file>Resources/black_queen_icon.png</file>
+        <file>Resources/black_rook_icon.png</file>
+        <file>Resources/white_bishop_icon.png</file>
+        <file>Resources/white_king_icon.png</file>
+        <file>Resources/white_knight_icon.png</file>
+        <file>Resources/white_pawn_icon.png</file>
+        <file>Resources/white_queen_icon.png</file>
+        <file>Resources/white_rook_icon.png</file>
+    </qresource>
+    <qresource prefix="/wavs">
+        <file>Resources/sound_standard_Capture.wav</file>
+        <file>Resources/sound_standard_Castling.wav</file>
+        <file>Resources/sound_standard_Check.wav</file>
+        <file>Resources/sound_standard_CheckMate.wav</file>
+        <file>Resources/sound_standard_GameStart.wav</file>
+        <file>Resources/sound_standard_Move.wav</file>
+    </qresource>
+    <qresource prefix="/"/>
+</RCC>
