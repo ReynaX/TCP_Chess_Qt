@@ -17,7 +17,9 @@ public:
 
     void unselect();
 
+    // Assign the icon of given type and color to this square
     void selectIcon(char type, Color color);
+    // Remove icon from this square
     void removeIcon();
 protected:
     QSize sizeHint() const;

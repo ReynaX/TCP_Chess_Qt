@@ -18,7 +18,7 @@ ChessBoard::ChessBoard(QWidget *parent)
         Color color = ((i + i / 8) % 2 == 0) ? Color::WHITE : Color::BLACK;
 
         BoardSquare* square = new BoardSquare(color, row, col);
-//        connect(square, &QPushButton::pressed, this, &ChessBoard::onChessBoardClicked);
+        connect(square, &QPushButton::pressed, this, &ChessBoard::onChessBoardClicked);
         ui->mainLayout->addWidget(square, i / 8, i % 8, 1, 1);
         m_boardSquares.push_back(square);
 
@@ -27,7 +27,7 @@ ChessBoard::ChessBoard(QWidget *parent)
     setWindowTitle("Chess");
 
     setupMenu();
-    setupBoard("rnbqkbnrpppppppp--------------------------------PPPPPPPPRNBQKBNR");
+//    setupBoard("rnbqkbnrpppppppp--------------------------------PPPPPPPPRNBQKBNR");
 
     m_playerMove = false;
     m_moveLabel = new QLabel(this);
@@ -65,58 +65,42 @@ void ChessBoard::unselectPossibleMoves(){
         square->unselect();
 }
 
-//void ChessBoard::onChessBoardClicked(){
-//    BoardSquare* squarePressed = qobject_cast<BoardSquare*>(sender());
-
-//    if(!m_playerMove)
-//        return;
-
+void ChessBoard::onChessBoardClicked(){
+    BoardSquare* squarePressed = qobject_cast<BoardSquare*>(sender());
+    if(!m_playerMove)
+        return;
 //    if(m_logicController->m_state == GameState::STALEMATE || m_logicController->m_state == GameState::STALEMATE)
 //        return;
 
-//    if(m_squareSelected == nullptr){
-//        Piece* pieceClicked = m_logicController->m_board[squarePressed->getRow()][squarePressed->getCol()];
-//        if(pieceClicked != nullptr && pieceClicked->getColor() == m_logicController->m_turn){
-//            m_squareSelected = squarePressed;
-//            selectPossibleMoves();
-//        }
-//    }else{
-//        Pos fromPos(m_squareSelected->getRow(), m_squareSelected->getCol());
-//        Pos toPos(squarePressed->getRow(), squarePressed->getCol());
-//        Piece* pieceWaitingToMove = m_logicController->m_board[fromPos.row][fromPos.col];
-//        auto moves = pieceWaitingToMove->possibleMoves(m_logicController->m_board);
-
-//        // Iterate over possible moves and check if move is legal
-//        auto& possibleMoves = m_logicController->m_possibleMoves;
-//        for(auto it = possibleMoves.begin(); it != possibleMoves.end(); ++it){
-//            if(it->first == fromPos && it->second == toPos){
-//                Move* move = m_logicController->makeMove(fromPos, toPos);
-//                m_logicController->swapTurns();
-//                removeIcon(move, squarePressed);
-//                m_squareSelected->removeIcon();
-
-//                SoundPlayer::playSound(move, m_logicController->m_state);
-//                m_socket->move(fromPos.toString(), toPos.toString());
-
-//                delete move;
+    if(m_squareSelected == nullptr){
+        int row = squarePressed->getRow(), col = squarePressed->getCol();
+        qDebug () << m_board[row * 8 + col];
+        if(m_board[row * 8 + col] != '-'){
+            m_squareSelected = squarePressed;
+            selectPossibleMoves();
+        }
+    }else{
+        Pos fromPos(m_squareSelected->getRow(), m_squareSelected->getCol());
+        Pos toPos(squarePressed->getRow(), squarePressed->getCol());
+        for(auto it = m_possibleMoves.begin(); it != m_possibleMoves.end(); ++it){
+            if(it->first == fromPos && it->second == toPos){
+                m_socket->move(fromPos.toString(), toPos.toString());
 //                m_playerMove = false;
-//                m_moveLabel->setText("Not your move");
-//                break;
-//            }
-//        }
-//        unselectPossibleMoves();
-//        m_squareSelected = nullptr;
-
-//        if(m_logicController->m_state != GameState::NONE && m_logicController->m_state != GameState::CHECK){
-//            gameFinished();
-//        }
-//    }
-//}
+                m_moveLabel->setText("Not your move");
+                break;
+            }
+        }
+        unselectPossibleMoves();
+        m_squareSelected = nullptr;
+    }
+}
 
 void ChessBoard::onHostGameActionClicked(){
     qDebug() << "Host clicked";
-    if(m_socket != nullptr)
-        m_socket->disconnect();
+    if(m_socket != nullptr){
+        m_socket->disconnectFromHost();
+    }
+
     connectToServer();
     if(m_socket != nullptr){
         m_socket->hostGame();
@@ -128,16 +112,17 @@ void ChessBoard::onHostGameActionClicked(){
 
 void ChessBoard::onJoinGameActionClicked(){
     qDebug() << "Join clicked";
-    if(m_socket != nullptr)
-        m_socket->disconnect();
+    if(m_socket != nullptr){
+        m_socket->disconnectFromHost();
+    }
 
     connectToServer();
     if(m_socket != nullptr){
         JoinGameDialog dialog;
 
         int res = dialog.exec();
-        setupBoard("rnbqkbnrpppppppp--------------------------------PPPPPPPPRNBQKBNR");
         if(res == QDialog::Accepted && m_socket != nullptr){
+            qDebug() << "Accepted";
             QString gameID = dialog.getGameID();
             if(gameID.toStdString() == m_socket->getGameID()){
                 setupStatusbar("Game ID: ", "", "Failed to join the game");
@@ -149,6 +134,7 @@ void ChessBoard::onJoinGameActionClicked(){
                 m_playerMove = false;
                 setupStatusbar("Game ID: " + m_socket->getGameID(), "Playing...", "Not your move");
             });
+            m_playerMove = false;
         }
     }
 }
@@ -182,15 +168,15 @@ void ChessBoard::onDisconnectActionClicked(){
 void ChessBoard::disconnectedFromServer(){
     if(m_socket != nullptr){
         m_socket->disconnectFromHost();
-        delete m_socket;
+        m_socket->disconnect();
     }
+
     clearBoard();
     m_moveLabel->clear();
     m_gameIDLabel->clear();
     m_infoLabel->setText("Disconnected from server");
     m_socket = nullptr;
 }
-
 
 void ChessBoard::gameFinished(){
     std::string currentPlayerMessage, otherPlayerMessage;
@@ -250,16 +236,43 @@ void ChessBoard::connectToServer(){
     }
     else{
         m_infoLabel->setText("Connected to a server");
-//        connect(m_socket, &TcpSocket::moveSignal, this, &ChessBoard::onOtherPlayerMovement);
-        connect(m_socket, &TcpSocket::enableMovement, this, [this](){ m_playerMove = true;
-            setupStatusbar("Game ID: " + m_socket->getGameID(), "Playing...", "Your move");});
+
+        connect(m_socket, &TcpSocket::enableMovement, this, [this](){
+            m_playerMove = true;
+            setupStatusbar("Game ID: " + m_socket->getGameID(), "Playing...", "Your move");
+        });
+
         connect(m_socket, &TcpSocket::disconnectedFromServer, this, &ChessBoard::disconnectedFromServer);
+
         connect(m_socket, &TcpSocket::gameIDChanged, this, [this](){
-            m_gameIDLabel->setText("Game ID: " + QString::fromStdString(m_socket->getGameID()));});
+            m_gameIDLabel->setText("Game ID: " + QString::fromStdString(m_socket->getGameID()));
+        });
+
         connect(m_socket, &TcpSocket::won, this, [this](){
-            m_infoLabel->setText("Congratulations, you won!"); m_playerMove = false; });
+            m_infoLabel->setText("Congratulations, you won!"); m_playerMove = false;
+        });
+
         connect(m_socket, &TcpSocket::lost, this, [this](){
-            m_infoLabel->setText("Game over, you lost!"); m_playerMove = false; });
+            m_infoLabel->setText("Game over, you lost!"); m_playerMove = false;
+        });
+
+        connect(m_socket, &TcpSocket::boardChanged, this, &ChessBoard::setupBoard);
+
+        connect(m_socket, &TcpSocket::possibleMovesSignal, this, [this](std::unordered_multimap<Pos, Pos, PosHash> moves){
+            m_possibleMoves = std::move(moves);
+
+            if(m_possibleMoves.size() > 0){
+                m_playerMove = true;
+                m_moveLabel->setText("Your move");
+            }else{
+                m_playerMove = false;
+                m_moveLabel->setText("Not your move");
+            }
+        });
+
+        connect(m_socket, &TcpSocket::failedToJoin, this, [this](){
+            m_infoLabel->setText("Failed to join the game!");
+        });
     }
 }
 
@@ -269,6 +282,7 @@ void ChessBoard::clearBoard(){
 }
 
 void ChessBoard::setupBoard(std::string board){
+    m_playerMove = !m_playerMove;
     m_board = board;
     for(int i = 0; i < 64; ++i){
         if(m_board[i] == '-'){
@@ -279,10 +293,3 @@ void ChessBoard::setupBoard(std::string board){
         }
     }
 }
-
-//void ChessBoard::garbageCollector(){
-//    delete m_logicController;
-//    for(auto& square: m_boardSquares)
-//        delete square;
-//    m_boardSquares.clear();
-//}

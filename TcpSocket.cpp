@@ -4,12 +4,12 @@
 TcpSocket::TcpSocket(QObject *parent) : QTcpSocket(parent) {
     connect(this, SIGNAL(readyRead()), this, SLOT(readyRead()));
     this->connectToHost(QHostAddress("127.0.0.1"), 1234);
-    m_playerName = "aha";
 }
 
 void TcpSocket::hostGame(){
     QByteArray outputData;
     outputData.append('h');
+    qDebug() << "Sending data" << outputData;
     this->write(outputData);
 }
 
@@ -18,6 +18,7 @@ void TcpSocket::joinGame(){
     outputData.append('j');
     outputData.append(m_gameID.length());
     outputData.append(m_gameID.c_str(), m_gameID.length());
+    qDebug() << "Sending data" << outputData;
     this->write(outputData);
 }
 
@@ -56,6 +57,7 @@ void TcpSocket::drawGame(){
     outputData.append('r'); // code message for draw
     outputData.append(m_gameID.length());
     outputData.append(m_gameID.c_str(), m_gameID.length());
+    qDebug() << "Sending data" << outputData;
     this->write(outputData);
 }
 
@@ -65,6 +67,7 @@ void TcpSocket::wonGame(std::string color){
     outputData.append(m_gameID.length());
     outputData.append(m_gameID.c_str(), m_gameID.length());
     outputData.append(color[0]);
+    qDebug() << "Sending data" << outputData;
     this->write(outputData);
 }
 
@@ -75,9 +78,7 @@ void TcpSocket::readyRead(){
         char messagecode = inputData[0];
         inputData.remove(0,  1);
         if(messagecode == 0){
-            qDebug() << "Error";
-        }else if(messagecode == 'e'){
-            qDebug() << "Server got the message";
+            emit failedToJoin();
         }else if(messagecode == 'm'){
             handleMove(inputData);
         }else if(messagecode == 'n'){
@@ -85,7 +86,6 @@ void TcpSocket::readyRead(){
         }else if(messagecode == 'j'){
              std::string gameID = getProperty(inputData);
              m_gameID = gameID;
-             qDebug() << "Game ID" << m_gameID.c_str();
              emit gameIDChanged(); emit joined();
         }else if(messagecode == 'd'){
             disconnectFromHost();
@@ -94,10 +94,9 @@ void TcpSocket::readyRead(){
             emit lost();
         }else if(messagecode == 'w'){
             emit won();
-        }else if(messagecode == 'b'){
-
         }else if(messagecode == 'p'){
-
+            auto possibleMoves = parsePossibleMoves(inputData);
+            emit possibleMovesSignal(possibleMoves);
         }
     }
 }
@@ -110,10 +109,22 @@ std::string TcpSocket::getProperty(QByteArray& data){
     return property;
 }
 
-void TcpSocket::handleMove(QByteArray data){
-    std::string from = getProperty(data);
-    std::string to = getProperty(data);
-    qDebug() << "Emitting move signal" << from.c_str() << to.c_str();
-    emit moveSignal(from, to);
+void TcpSocket::handleMove(QByteArray& data){
+    std::string board = QString(data.left(64)).toStdString();
+    data.remove(0, 64);
+    emit boardChanged(board);
+}
+
+std::unordered_multimap<Pos, Pos, PosHash> TcpSocket::parsePossibleMoves(QByteArray& data){
+    std::unordered_multimap<Pos, Pos, PosHash> moves;
+    while(!data.isEmpty() && data.at(0) < 10){
+        std::string from = getProperty(data);
+        std::string to = getProperty(data);
+
+        Pos fromPos = Pos(std::stoi(from) / 8, std::stoi(from) % 8);
+        Pos toPos = Pos(std::stoi(to) / 8, std::stoi(to) % 8);
+        moves.insert(std::make_pair(fromPos, toPos));
+    }
+    return moves;
 }
 

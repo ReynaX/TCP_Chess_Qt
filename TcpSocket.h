@@ -2,6 +2,7 @@
 #define TCPSOCKET_H
 
 #include <QTcpSocket>
+#include "Globals.h"
 
 class JoinGameDialog;
 class TcpSocket : public QTcpSocket
@@ -20,22 +21,25 @@ public slots:
     std::string getGameID();
     void drawGame();
     void wonGame(std::string color);
+    //
     void readyRead();
 signals:
+    // Signals responsible for notifying Chess board of changes coming from the server
     void moveSignal(std::string from, std::string to);
     void enableMovement();
     void disconnectedFromServer();
     void gameIDChanged();
-    void activeGames(QList<std::string> games);
     void joined();
+    void failedToJoin();
     void won();
     void lost();
+    void boardChanged(std::string board);
+    void possibleMovesSignal(std::unordered_multimap<Pos, Pos, PosHash> moves);
 private:
     std::string getProperty(QByteArray& data);
 
-    void handleMove(QByteArray data);
-
-    std::string m_playerName;
+    void handleMove(QByteArray& data);
+    std::unordered_multimap<Pos, Pos, PosHash> parsePossibleMoves(QByteArray& data);
     std::string m_gameID;
 };
 
