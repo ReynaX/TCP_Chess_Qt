@@ -18,10 +18,10 @@ gdzie:
 Segmenty mogą być zagnieżdźone.
 Serwer posiada rejestr wszystkich gier w postaci:
 <code>std::unordered_map<unsigned int, ChessGame></code>
-gdzie kluczem jest ID gry generowane automatycznie oraz informacje o grze jako wartość. Podczas odłączenia się jednego z graczy, drugi gracz również sotanie rozłaczony.
+gdzie kluczem jest ID gry generowany automatycznie oraz informacje o grze jako wartość. Podczas odłączenia się jednego z graczy, drugi gracz również zostanie rozłączony.
 
 Cała logika serwera znajduje się w klasie <code>TcpServer</code>.
-Cała logika klienta znajduje się w klasie <code>TcpSocket</code>, która wysyła sygnały, a te odbierane są przez klasę <code>ChessBoard</code>.
+Cała logika klienta znajduje się w klasie <code>TcpSocket</code>, której instancja wysyła sygnały, a te odbierane są przez obiekt klasy <code>ChessBoard</code>.
 
 ## Instrukcja
 Należy pobrać [archiwum](https://drive.google.com/file/d/1AohSQHM580Jt81AY8rWaQVvBitt8XBQJ/view) i uruchomić. Serwer najlepiej uruchomić z terminala.
